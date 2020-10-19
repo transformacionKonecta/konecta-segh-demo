@@ -18,35 +18,14 @@ Vue.use(VuePromiseBtn)
 require('firebase/firestore');
 
 const configOptions = {
-
-  // apiKey: "AIzaSyD7BgowPMHgkRz7Tkd4SBjFiegIybPOL88",
-  // authDomain: "seleccion-digital.firebaseapp.com",
-  // databaseURL: "https://seleccion-digital.firebaseio.com",
-  // projectId: "seleccion-digital",
-  // storageBucket: "seleccion-digital.appspot.com",
-  // messagingSenderId: "165269710063",
-  // appId: "1:165269710063:web:20a6c5611b6f587f5da71a",
-  // measurementId: "G-MMDEVB0DW0" 
-
-  
-/*   apiKey: "AIzaSyB5Ap0VYAT3-rkIxVGu9eBp6oEf9VJZyas",
-   authDomain: "konectase-desa.firebaseapp.com",
-   databaseURL: "https://konectase-desa.firebaseio.com",
-   projectId: "konectase-desa",
-   storageBucket: "konectase-desa.appspot.com",
-   messagingSenderId: "962491687547",
-   appId: "1:962491687547:web:a0fcbee16feb4ad0a9b8de",
-   measurementId: "G-ZWE6D4HTXB" */
-
-//  OLD fiorella
-  apiKey: "AIzaSyDFb0EaWaPKCq37BuZSkoY2193PNZrUx0I",
-  authDomain: "konecta-seleccion.firebaseapp.com",
-  databaseURL: "https://konecta-seleccion.firebaseio.com",
-  projectId: "konecta-seleccion",
-  storageBucket: "konecta-seleccion.appspot.com",
-  messagingSenderId: "212657214250",
-  appId: "1:212657214250:web:34e59f4f06c30511644453",
-  measurementId: "G-FZ4MPDHR8G"  
+    apiKey: "AIzaSyDLjXRMWXTBNNozor5IBbo58f0VoFVfkDM",
+    authDomain: "seleccion-demo.firebaseapp.com",
+    databaseURL: "https://seleccion-demo.firebaseio.com",
+    projectId: "seleccion-demo",
+    storageBucket: "seleccion-demo.appspot.com",
+    messagingSenderId: "1077654316222",
+    appId: "1:1077654316222:web:3faa6895f20b74139c6aef",
+    measurementId: "G-ECS0F2D3J4"
 };
 
 // Initialize Firebase

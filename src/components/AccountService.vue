@@ -251,7 +251,7 @@
 </template>
 <script>
 import firebase from "firebase";
-
+import {getCuentas} from "../utils/cuentaServicios";
 import {
   createAccount,
   readServices,
@@ -301,8 +301,15 @@ export default {
     await this.callAccounts();
     await this.callServices();
     console.log(this.itemsServices);
+  /*   this.generateAccounts(); */
   },
   methods: {
+    generateAccounts() {
+      const accounts = getCuentas();
+      accounts.forEach((a) =>{
+        createAccount(a.name);
+      })
+    },
     async callAccounts() {
       this.itemsAccounts = await this.orderAccounts();
     },

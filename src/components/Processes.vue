@@ -789,8 +789,14 @@ import LoginVue from "./Login.vue";
 
 
 import {readAccounts, readServices } from "../firebase/accountServicesMethods.js";
-import { getProfiles } from "../firebase/processMethods";
+/* import { getProfiles } from "../firebase/processMethods"; */
 import { Datetime } from "vue-datetime";
+
+/* import {
+  getProfiles,
+  getCompetencies,
+  getCompetenciesByIds,
+} from "../utils/competencies"; */
 
 
 export default {
@@ -909,6 +915,27 @@ export default {
     this.callGetProcesses();
   },
   methods: {
+    createProfiles() {
+      let profiles = getProfiles();
+      let listProfiles = [];
+      listProfiles = profiles.map((profile) => ({
+        name: profile.name,
+        competencies: getCompetenciesByIds(profile.competencies),
+      }));
+      console.log("aqui");
+      console.log(listProfiles);
+      listProfiles.forEach((profile) => {
+        const key = firebase
+          .database()
+          .ref("PROFILES")
+          .push().key;
+        firebase
+          .database()
+          .ref("PROFILES")
+          .child(key)
+          .set(profile);
+      });
+    },
     callProfiles() {
       this.itemProfiles = getProfiles();
     },
