@@ -37,7 +37,7 @@
             </v-list-item-icon>
             <v-list-item-content>
               <v-list-item-title @click="$router.push('/home')"
-                >Home</v-list-item-title
+                >Inicio</v-list-item-title
               >
             </v-list-item-content>
           </v-list-item>

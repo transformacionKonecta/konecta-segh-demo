@@ -46,7 +46,7 @@ export default {
         datasets: [
           {
             label: "GitHub Commits",
-            backgroundColor: ["#96A6FF", "#E8B56B", "#FF8795", "#ACFFE3"],
+            backgroundColor: ["#27AE60", "#828282", "#FF7E07", "#FF5252"],
             data: this.values,
           },
         ],
@@ -65,7 +65,7 @@ export default {
         datasets: [
           {
             label: "GitHub Commits",
-            backgroundColor: ["#96A6FF", "#E8B56B", "#FF8795", "#ACFFE3"],
+            backgroundColor: ["#27AE60", "#828282", "#FF7E07", "#FF5252"],
             data: this.values,
           },
         ],

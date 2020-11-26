@@ -202,7 +202,20 @@ export default new Router({
     {
       path: '/home',
       name: 'Home',
-      component: () => import('../components/Home.vue'),
+      component: () => import('../views/Home.vue'),
+      meta: { reqAuth: true },
+      beforeEnter: (to, from, next) => {
+        if (!firebase.auth().currentUser) {
+          next('/')
+        } else {
+          next()
+        }
+      },
+    },
+    {
+      path: '/home/call',
+      name: 'CallDetail',
+      component: () => import('../views/CallDetail.vue'),
       meta: { reqAuth: true },
       beforeEnter: (to, from, next) => {
         if (!firebase.auth().currentUser) {

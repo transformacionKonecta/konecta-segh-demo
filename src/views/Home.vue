@@ -1,10 +1,9 @@
 <template>
     <v-app>
-        <h1 class="px-3 mx-3 my-3"> Bienvenido Ramiro</h1>
-        <h5 class="px-3 mx-3">Aquí podrás encontrar un resumen de actividades en equipo</h5>
-            <!-- <Loading
-             :loading="loading"
-            /> -->
+        <h1 class="px-3 mx-3 my-3"> Bienvenido</h1>
+        <h5 class="px-3 mx-3">
+            Aquí podrás encontrar un resumen de las actividades en tu equipo. Recuerda que la información que se visualiza en esta pantalla está actualizada hasta al cierre del día de ayer.
+        </h5>
             <div>
                 <div class=" dataSelect d-flex px-3 mx-3 my-2">
                 <v-menu class="px-3 mx-3 my-2"
@@ -26,8 +25,8 @@
                     locale="ES-es"
                     color="teal"
                     no-title
+                    :max="yesterday"
                     v-model="startDate"
-                    @click:date="getTimeOld"
                     @change="menu1 = false"
                 ></v-date-picker>
              </v-menu>
@@ -42,6 +41,7 @@
                     readonly
                     v-on="on"
                     color="teal"
+                    
                     @click:clear="endDate = null"
                     ></v-text-field>
                 </template>
@@ -49,60 +49,32 @@
                     locale="ES-es"
                     color="teal"
                     no-title
+                    :max="new Date().toISOString().slice(0,10)"
                     v-model="endDate"
-                    @click:date="getTimeEnd"
                     @change="menu2 = false"
                 ></v-date-picker>
              </v-menu>
+              <v-btn width="152" class="ma-2" dark color="#EF6C00"
+              v-on:click="getTime"
+               >
+                <v-icon
+                left>search</v-icon>Buscar
+                <v-progress-circular
+                class="ml-2"
+                 v-if="loadingTable"
+                 left
+                 :size="25"
+                 :width="5"
+                 color="primary"
+                indeterminate
+                
+                ></v-progress-circular>
+             </v-btn>
             </div>
-            <FunnelGraph
-            v-if="(Object.values(total))[0]!==0"
-            :values="Object.values(total)"
-            />
-            <div class="d-flex px-3 mx-1 my-3">
-                <v-card 
-                class= "table px-1 elevation-3 ml-1 mr-4 my-1 rounded-lg">
-                     <v-card-title class="d-flex titleCard">
-                        <v-img
-                        class="mr-3"
-                        src="../assets/call.svg"
-                        aspect-ratio="1"
-                        max-width="40"
-                        ></v-img>
-                        <span>Reclutadores</span> 
-                        <v-spacer></v-spacer>
-                        <v-btn
-                        width="92"
-                        class="ma-2 text-capitalize"
-                        dark
-                        color="#00BCD4">
-                            Ver todo
-                        </v-btn>
-                    </v-card-title>
-                    <div v-if="loadingTable"
-                    class="d-flex px-3 mx-1 my-3"
-                    >
-                      Cargando...
-                    </div>
-                    <v-data-table
-                    v-else
-                    dense
-                    :headers="headers"
-                    :items="interviewsByCall"
-                    :items-per-page="interviewsByCall.length"
-                    hide-default-footer
-                    item-key="name"
-                    class="elevation-1 rounded-0 my-3 mx-1"
-                    >
-                        <template v-slot:item.showmore="{ item }">
-                        <v-chip
-                            dark
-                        >
-                            {{ item.showmore }}
-                        </v-chip>
-                        </template>
-                    </v-data-table>
-                </v-card>
+            <div class="d-flex">
+                <FunnelGraph
+                :values="Object.values(total)"
+                />
                 <v-card class= "graffic elevation-3 ml-4 mr-1 my-1 rounded-lg d-flex flex-column">
                     <v-card-title class="d-flex titleCard">
                         <v-img
@@ -112,14 +84,6 @@
                         max-width="35"
                         ></v-img>
                         <span>Conversión de grupo</span> 
-                        <v-spacer></v-spacer>
-                        <v-btn
-                        width="92"
-                        class="ma-2 text-capitalize"
-                        dark
-                        color="#00BCD4">
-                            Ver todo
-                        </v-btn>
                     </v-card-title>
                     <Doughnut
                     v-if="(Object.values(total))[0]!==0"
@@ -141,49 +105,59 @@
                     </div>
                 </v-card>
             </div>
+            <HomeIndicatorsTeam
+            :items="indicatorsByTeam"
+            />
+            <div class="d-flex px-3 mx-1 my-3">
+               <RecruiterTable
+                :loadingTable="loadingTable"
+                :interviewsByCall="interviewsByCall"
+               />
+               <SelectorTable
+               :loadingTable="loadingTable"
+               :dateOld="dateOld"
+               :dateEnd="dateEnd"
+               :searchAgain ="searchAgain"
+               :getSelectorInfo="getSelectorInfo"
+               />
+            </div>
             </div>
     </v-app>
 </template>
 
 <script>
-import firebase from "firebase";
 import moment from "moment";
 import {compareDate } from '../utils/hour'
 import FunnelGraph from '../components/Graphics/FunnelGraph.vue'
 import Doughnut from '../components/Graphics/Doughnut'
 import Loading from '../components/Graphics/Spinner'
-
+import RecruiterTable from '../components/HomeRecruiterTable'
+import HomeIndicatorsTeam from '../components/HomeIndicatorsTeam'
+import SelectorTable from '../components/HomeSelectorTable'
 import { getProgramedEvaluationByIdPostulant } from '../firebase/evaluationMethods';
-import { getProgramedInterviewsBySelector , getProgramedInterviewsByCall} from '../firebase/interviewMethods';
+import { getProgramedInterviewsByCall} from '../firebase/interviewMethods';
 import { getUsersByRole, getUser } from '../firebase/userMethods';
-    export default {
+
+export default {
         data(){
-            const today = new Date().toISOString().substr(0, 10);
+            const hoy = new Date();
+            const milisegundosDay = 24 * 60 * 60 * 1000;
+            const yes =  new Date(hoy.getTime()- milisegundosDay);
+            const today = hoy.toISOString().substr(0, 10);
             const todayArray = today.split('-');
+            const yesterday = new Date(`${yes.toISOString().substr(0, 10)} 06:00`)
             return {
+                searchAgain:false,
                 loading: true,
                 loadingTable: true,
-                startDate: today,
+                startDate: yesterday.toISOString().slice(0,10),
                 endDate: today,
                 menu1: false,
                 menu2:false,
-                headers: [
-                    {
-                    text: 'Nombres y apellidos',
-                    align: 'start',
-                    sortable: false,
-                    value: 'interviewer',
-                    },
-                    { text: 'Tipificación', value: 'tipification' },
-                    { text: 'Agendados', value: 'scheduled' },
-                    { text: 'Aptos', value: 'aptos' },
-                    { text: 'Conversión', value: 'convertion'},
-                    { text: 'Detalle', value: 'showmore'}
-                ],
                 interviewsByCall: [],
-                interviewsBySelector: [],
                 dateOld: `${todayArray[2]}/${todayArray[1]}/${todayArray[0]}`,
                 dateEnd:`${todayArray[2]}/${todayArray[1]}/${todayArray[0]}`,
+                yesterday: yesterday.toISOString().slice(0,10),
                 conversion: [],
                 total:{
                     tipification:0,
@@ -195,16 +169,28 @@ import { getUsersByRole, getUser } from '../firebase/userMethods';
                     noSePresento: 0,
                     rechazaPropuesta : 0,
                     noApto :0,
-                }
+                },
+                indicatorsByTeam:[{
+                    img:'management.svg',
+                    title: 'Productividad de Call',
+                    percentage: 0,
+                    update: yesterday.toISOString().slice(0,10)
+                },{
+                    img:'video-calling.svg',
+                    title: 'Presentismo Call',
+                    percentage: 0,
+                    update: yesterday.toISOString().slice(0,10)
+                },
+                {   img:'vote.svg',
+                    title: 'Calidad Call',
+                    percentage: 0,
+                    update: yesterday.toISOString().slice(0,10)
+                },{ img:'selection.svg',
+                    title: 'Productividad Selección',
+                    percentage: 0,
+                    update: yesterday.toISOString().slice(0,10)
+                }] 
 
-            }
-        },
-        watch: {
-            dateOld() {
-                this.calls()
-            },
-            dateEnd(){
-                this.calls()
             }
         },
         computed: {
@@ -218,16 +204,39 @@ import { getUsersByRole, getUser } from '../firebase/userMethods';
         components: {
             FunnelGraph,
             Doughnut,
-            Loading
+            Loading,
+            RecruiterTable,
+            HomeIndicatorsTeam,
+            SelectorTable,
         },
         methods: {
-             getTimeOld(date) {
-                 const dateOldArray = date.split('-');
-                 this.dateOld = `${dateOldArray[2]}/${dateOldArray[1]}/${dateOldArray[0]}`;
+            getSelectorInfo(aptos,entrevistados){
+                this.indicatorsByTeam[3].percentage = Math.round(aptos/entrevistados*10000)/100
             },
-            getTimeEnd(date) {
-                 const dateEndArray = date.split('-');
+            addZeroInterviewsCall(name){
+                this.interviewsByCall.push({
+                    interviewer: name,
+                    tipification:0,
+                    scheduled: 0,
+                    aptos: 0,
+                    convertion: '0%',
+                    noAptos: 0,
+                    noSePresento: 0,
+                    rechazaPropuesta: 0,
+                    reasonsNoAptos:[],
+                    fecha: `${this.startDate} hasta ${this.endDate}`
+                })
+            },
+            reasonsNoAptos(objNoAptos){
+                return objNoAptos.map((noApto) => (Object.values(noApto)[0].itemNoApto === undefined)? 'Otros (especificar)': Object.values(noApto)[0].itemNoApto);
+            },
+            getTime() {
+                 const dateOldArray = this.startDate.split('-');
+                 this.dateOld = `${dateOldArray[2]}/${dateOldArray[1]}/${dateOldArray[0]}`;
+                 const dateEndArray = this.endDate.split('-');
                  this.dateEnd = `${dateEndArray[2]}/${dateEndArray[1]}/${dateEndArray[0]}`;
+                 this.calls()
+                 this.searchAgain= !this.searchAgain
             },
             async calls() {
                 this.interviewsByCall= [];
@@ -253,13 +262,15 @@ import { getUsersByRole, getUser } from '../firebase/userMethods';
                             if(!!interviewsByCall.val()){
                                 const byDaysAgo = Object.values(interviewsByCall.val()).filter((e) => 
                                 compareDate(e.fechaEntrevista, this.dateOld) && compareDate(this.dateEnd, e.fechaEntrevista))
+                                ///
+                                if(byDaysAgo.length !== 0) {
                                 // Por rango de fecha devuelve un array de evaluaciones
                                 const promises = await byDaysAgo.map( (obj, i) => getProgramedEvaluationByIdPostulant(obj.id_postulante)
-                                    .then(programedEvaluation =>!!programedEvaluation.val()? programedEvaluation.val(): 'No evaluacion'
+                                    .then(programedEvaluation =>!!programedEvaluation.val()? {... programedEvaluation.val() , fechaEntrevista: obj.fechaEntrevista}: 'No evaluacion'
                                     ))
                                     Promise.all(promises)
                                     .then(programedEvaluations => {
-                                        console.log(programedEvaluations);
+                                        const objNoAptos = programedEvaluations.filter(e => Object.values(e)[0].estado === 'NO APTO');
                                         const states = programedEvaluations.map(e => !(e==='No evaluacion')? Object.values(e)[0].estado: 'No evaluacion')
                                         const scheduled = states.filter((state) => state !== 'No evaluacion')
                                         const aptos = states.filter((state) => state === 'APTO')
@@ -269,69 +280,53 @@ import { getUsersByRole, getUser } from '../firebase/userMethods';
                                         const convertion = !!scheduled.length? Math.round(aptos.length*10000/scheduled.length)/100 : 0
                                         this.loadingTable =false;
                                         if(states.length!==0){
+                                        // total ---------
                                         this.total.aptos += aptos.length
                                         this.total.scheduled += scheduled.length
                                         this.total.tipification += states.length
-
+                                        // convertion ------
                                         this.convertion.aptos += aptos.length
                                         this.convertion.noSePresento += noSePresento.length
                                         this.convertion.rechazaPropuesta += rechazaPropuesta.length
                                         this.convertion.noApto += noApto.length
-                                        this.loading = false;
+                                        // indicators-------
+                                        this.indicatorsByTeam[0].percentage = Math.round(this.total.scheduled/this.total.tipification*10000)/100
+                                        this.indicatorsByTeam[1].percentage = Math.round((1-(this.convertion.noSePresento/this.total.scheduled))*10000)/100
+                                        this.indicatorsByTeam[2].percentage = Math.round(this.total.aptos/this.total.scheduled*10000)/100
                                         this.interviewsByCall.push ({
+                                            callId,
                                             interviewer: name,
                                             tipification:states.length,
                                             scheduled: scheduled.length,
-                                            aptos: aptos.length,
                                             convertion: `${convertion}%`,
-                                            showmore: 'Ver'
+                                            aptos: aptos.length,
+                                            noAptos: noApto.length,
+                                            noSePresento: noSePresento.length,
+                                            rechazaPropuesta: rechazaPropuesta.length,
+                                            reasonsNoAptos: this.reasonsNoAptos(objNoAptos),
+                                            fecha: `${this.startDate} hasta ${this.endDate}`
                                         })
+
                                         }
+                                        
                                     })
+                                }
+                                 else {
+                                this.addZeroInterviewsCall(name)
+                                this.loadingTable = false;
+                            }
+
                             } else {
-                                //si no tiene entrevistas
-                                    this.interviewsByCall.push({
-                                    interviewer: name,
-                                    tipification:0,
-                                    scheduled: 0,
-                                    aptos: 0,
-                                    convertion: '0%',
-                                    showmore: 'Ver'
-                                })
+                                this.addZeroInterviewsCall(name)
                             }
                         })
-                        // .catch(() => console.log('no hay data'))
                         )
+                    .catch((e) =>alert(e))
                     ))
             },
-            // async selectors(){
-            //     const postlulantIds = await getUsersByRole("Selector")
-            //     .then( async user =>  {
-            //         const promises = await Object.keys(user.val()).forEach(callId => getUser(callId)
-            //         .then( user => `${user.name.toLowerCase()} ${user.lastName.toLowerCase()}`)
-            //         .then(  nameById =>  getProgramedInterviewsBySelector()
-            //             .then( intsBySelectorName => {
-            //                 const byName = Object.values(intsBySelectorName.val()).filter((e) => e.entrevistador.toLowerCase().includes(nameById))
-            //                 const byDaysAgo = byName.filter((e) => compareDate(e.fechaEntrevista,this.dateOld))
-            //                 return byDaysAgo.map( obj =>  getProgramedEvaluationByIdPostulant(obj.id_postulante)
-            //                     .then(programedEvaluation => !!programedEvaluation.val()? programedEvaluation.val(): 'no evaluacion')
-            //                 )
-            //             })
-            //             .then(promises => Promise.all(promises)
-            //                 .then(programedEvaluations => ({
-            //                     interviewer: nameById,
-            //                     states: programedEvaluations.map(e => !(e==='no evaluacion')? Object.values(e)[0].estado: 'no evaluacion')
-            //                 })))
-            //             )
-            //             .then(data => this.interviewsBySelector.push(data))
-            //         )
-            //         return promises
-            //         })
-            // }
         },
         created() {
             this.calls();
-            this.selectors();
         },
     }
 </script>
@@ -353,7 +348,7 @@ import { getUsersByRole, getUser } from '../firebase/userMethods';
         max-height: 100%;
     }
     .table{
-        width: 60%;
+        width: 50%;
     }
     .titleCard{
         color: #2276BB;
