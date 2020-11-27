@@ -1274,8 +1274,10 @@
 
 <script>
 const CLIENT_ID =
-  "588953841547-lljfhh3l60h09ppt1hhhmfv2p1cc2894.apps.googleusercontent.com";
-const API_KEY = "AIzaSyCba91ZNaXMHdSMLDMIvNWolZROzg3WoFg";
+ // "588953841547-lljfhh3l60h09ppt1hhhmfv2p1cc2894.apps.googleusercontent.com";
+  "762063258865-qrjfb1ee1s2gqif5pnbr109qpm09228m.apps.googleusercontent.com"
+const API_KEY = 'AIzaSyD6m-YUd-s5DIqXpzOf0dayGJZHep2NjqI';
+//"AIzaSyCba91ZNaXMHdSMLDMIvNWolZROzg3WoFg";
 const DISCOVERY_DOCS = [
   "https://www.googleapis.com/discovery/v1/apis/calendar/v3/rest",
 ];
@@ -2714,7 +2716,7 @@ export default {
       return this.api.client.calendar.events
         .insert({
           // calendarId: "choque101108@gmail.com",
-          calendarId: "vivekonecta@grupokonecta.com",
+          calendarId: "experienciadeclientes@grupokonecta.com",
           conferenceDataVersion: 1,
           maxAttendees: 3,
           sendNotifications: true,
